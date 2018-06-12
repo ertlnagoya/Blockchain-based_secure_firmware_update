@@ -95,19 +95,32 @@ def tuple_key(payload):
     return tuple(key)
 
 
-def randam(payload):
+def randam(payload, r_before):
+    '''
+    return randam nuber from payload
+    '''
+    data = []
+    data = payload.split("-")
+    r = int(data[4])
+    if (r_before + 2 - r) != 0:
+        print("Error: Rundam nuber. It may be Reply Attack!!", r , r_before)
+    # print(r)
+    return r + 1
+
+
+def randam_ini(payload):
     '''
     return randam nuber from payload
     '''
     data = []
     data = payload.split("-")
     r = data[4]
-    print(r)
     return int(r) + 1
 
 
 def make_payload(public_key, sender, NODE, INFO, r):
-    payload = str(public_key) + '-' + sender + '-' + NODE + '-' + VER + '-' + str(r) + '\n'
+    payload = (str(public_key) + '-' + sender + '-' + NODE + '-' 
+                + VER + '-' + str(r))
     return payload
 
 # For HTTPS conection
@@ -125,6 +138,7 @@ while True:
     print("public_key:", public_key)
     print("private_key:", private_key)
 
+    # conection
     s = socket(AF_INET)
     s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     print("[*] waiting for connection at %s:%s" % (HOST, VALID_PORT))
@@ -134,7 +148,7 @@ while True:
     print("[*] connection from: %s:%s" % addr)
 
     while True:
-        # c1-1-2
+        # Obtains vnew and Mvnew from its database c1-1-2
         payload = conn.recv(1024)
         if len(payload) == 0:
             break
@@ -146,51 +160,52 @@ while True:
         # print(type(key))
         # print(tuple(public_key))
         # print(type(public_key))
-        r = randam(payload)
+
+        r = randam_ini(payload)
         data = payload.split("-")
 
         if str(data[2]) == "nomalnode":
-            # c1-1-3
+            #  res_verchk c1-1-3
             payload = make_payload(public_key, sender, 'validnode', VER, r)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
             conn.sendall(payload)  
 
-            # c1-1-6
+            # Verifies and decrypts req_download message, and checks H(fvnew) c1-1-6
             payload = conn.recv(1024)
             if len(payload) == 0:
                 break
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
             print("[*] Reception: c1-1-6", payload)
-            r = randam(payload)
 
-            # c1-1-7
-            r = randam(payload)
+            # es_download c1-1-7
+            r = randam(payload, r)
             payload = make_payload(public_key, sender, 'validnode', HASH, r)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
             conn.sendall(payload)
 
         if str(data[2]) == "req_metadata":
-            # c2-1-8 & c2-3-6
+            #  Obtains Mvnew from its database c2-1-8 & c2-3-6
 
-            # c2-1-9 & c2-3-7
+            #  res_metadata c2-1-9 & c2-3-7
             payload = make_payload(public_key, sender, 'validnode', METADATA, r)
+            print("[*] c2-1-9 & c2-3-7:send", payload) 
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
             conn.sendall(payload) 
 
+            # Verifies and decrypts req_download message, and checks H(fvnew) 
             # c2-1-12 & c2-3-10
             payload = conn.recv(1024)
             payload = payload.decode("UTF-8")
-            #print("[*] Reception2: ", payload)
             payload = decrypt(payload, private_key)
             print("[*] Reception: c2-1-12 or c2-3-10", payload)
-            r = randam(payload)
 
-            # c2-1-13 & c2-3-11
-            r = randam(payload)
+            # Downloads and installs the latest firmware file 
+            # after checking res_download message c2-1-13 & c2-3-11
+            r = randam(payload, r - 1)
             payload = make_payload(public_key, sender, 'validnode',HASH, r)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")

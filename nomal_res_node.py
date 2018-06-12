@@ -215,20 +215,32 @@ def tuple_key(payload):
     return tuple(key)
 
 
-def randam(payload):
+def randam(payload, r_before):
+    '''
+    return randam nuber from payload
+    '''
+    data = []
+    data = payload.split("-")
+    r = int(data[4])
+    if (r_before + 2 - r) != 0:
+        print("Error: Rundam nuber. It may be Reply Attack!!", r , r_before)
+    # print(r)
+    return r + 1
+
+
+def randam_ini(payload):
     '''
     return randam nuber from payload
     '''
     data = []
     data = payload.split("-")
     r = data[4]
-    print(r)
     return int(r) + 1
 
 
 def make_payload(public_key, sender, NODE, INFO, r):
     payload = (str(public_key) + '-' + sender + '-' + NODE + 
-                '-' + VER + '-' + str(r) + '\n')
+                '-' + VER + '-' + str(r))
     return payload
 
 
@@ -269,12 +281,12 @@ while True:
         # print(type(key))
         # print(tuple(public_key))
         # print(type(public_key))
-        r = randam(payload)
+        r = randam_ini(payload)
         data = payload.split("-")
         comp = int(data[3])
         if int(VER) == comp:
             print("Version check: req = res!")
-            # c2-2-3
+            # join_verification c2-2-3
             payload = make_payload(public_key, sender, 'nomalnode', VER, r)
             print("[*] c2-2-3:send", payload) 
             payload = encrypt(payload, tuple(public_client_key))
@@ -283,25 +295,23 @@ while True:
             conn.sendall(payload)
              
             # git_pull()
-            # address = NODE_ADDRESS + ':' + str(NODE_PORT)
+            address = NODE_ADDRESS + ':' + str(NODE_PORT)
             # verify(address)
             # mine(address)
-            # transaction(address) 
-            # print("waiting...")
+            transaction(address) 
+            print("waiting...")
             # resolve(address)
 
-            # c2-2-7
+            # Verifies and decrypts req_verification message 
+            # and prepares to send H(fv') c2-2-7
             payload = conn.recv(1024)
-            if len(payload) == 0:
-                break
             # print("[*] Reception: " + str(payload))
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
             print("[*] Reception:c2-2-7", payload)
-            r = randam(payload)
 
             # c2-2-8
-            r = randam(payload)
+            r = randam(payload, r - 1)
             payload = make_payload(public_key, sender, 'nomalnode', HASH, r)
             print("[*] c2-2-8:send", payload) 
             payload = encrypt(payload, tuple(public_client_key))
@@ -324,7 +334,7 @@ while True:
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
             print("[*] Reception: c2-1-6", payload)
-            r = randam(payload)
+            r = randam(payload, r)
 
             # conn.close()
             soc = socket(AF_INET)
@@ -332,7 +342,7 @@ while True:
             soc.connect((HOST, VALID_PORT))
             print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
             
-            r = randam(payload)
+            r = randam(payload, r)
             payload = make_payload(public_key, sender, 'req_metadata', VER, r)
             soc.sendall(payload.encode("UTF-8"))
             print("[*] c2-1-7:send", payload)  
@@ -345,7 +355,7 @@ while True:
             public_server_key = tuple_key(payload)
 
             # req_download c2-1-11
-            r = randam(payload)
+            r = randam(payload, r)
             payload = make_payload(public_key, sender, 'req_metadata', 'Dawnload', r)
             print("[*] c2-1-11:send", payload)
             payload = encrypt(payload, tuple(public_server_key))

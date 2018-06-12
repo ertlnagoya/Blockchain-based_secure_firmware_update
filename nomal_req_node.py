@@ -10,7 +10,7 @@ from uuid import uuid4
 from fractions import gcd
 import random
 
-VER = "1"
+VER = "0"
 HASH = "f52d885484f1215ea500a805a86ff443"
 
 # Generate a globally unique address for this
@@ -80,19 +80,22 @@ def tuple_key(payload):
     return tuple(key)
 
 
-def randam(payload):
+def randam(payload, r_before):
     '''
     return randam nuber from payload
     '''
     data = []
     data = payload.split("-")
-    r = data[4]
-    print(r)
-    return int(r) + 1
+    r = int(data[4])
+    if (r_before + 2 - r) != 0:
+        print("Error: Rundam nuber. It may be Reply Attack!!", r , r_before)
+    # print(r)
+    return r + 1
 
 
 def make_payload(public_key, sender, NODE, INFO, r):
-    payload = str(public_key) + '-' + sender + '-' + NODE + '-' + VER + '-' + str(r) + '\n'
+    payload = (str(public_key) + '-' + sender + '-' + NODE + 
+                '-' + VER + '-' + str(r))
     return payload
 
 
@@ -103,10 +106,10 @@ def client(HOST, public_key, private_key):
     # conection
     soc = socket(AF_INET)
     soc.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    #soc.connect((HOST, NOMAL_PORT))
-    #print("[*] connecting to %s:%s" % (HOST, NOMAL_PORT))
-    soc.connect((HOST, VALID_PORT))
-    print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
+    soc.connect((HOST, NOMAL_PORT))
+    print("[*] connecting to %s:%s" % (HOST, NOMAL_PORT))
+    #soc.connect((HOST, VALID_PORT))
+    #print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
     # verbose_ping(sys.argv[12)
 
     # req_vercheck c1-1-1
@@ -123,7 +126,7 @@ def client(HOST, public_key, private_key):
     # print("[*] public_server_key", public_server_key)
 
     data = payload.split("-")
-    r = randam(payload)
+    r = randam(payload, r - 1)
     comp = int(data[3])
 
     if str(data[2]) == "validnode":
@@ -155,7 +158,7 @@ def client(HOST, public_key, private_key):
             print("[*] It is not latest! Download start!")
             #  TODO
             # req_download c1-2-5
-            r = randam(payload)
+            r = randam(payload, r)
             payload = make_payload(public_key, sender, "nomalnode", 'Download', r)
             payload = encrypt(payload, tuple(public_server_key))
             # print(payload)
@@ -204,19 +207,21 @@ def client(HOST, public_key, private_key):
             print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
             
             payload = make_payload(public_key, sender, 'req_metadata', 'metadata', r)
+            print("[*] c2-3-5:send", payload) 
             soc.sendall(payload.encode("UTF-8"))
-            print("[*] c2-3-5:send", data)  
+
 
             # Decrypts res_metadata message and obtains H(fvnew) from Mvnew c2-3-8
             payload = soc.recv(1024)
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
-            print("[*] Reception: c2-3-8 " + str(payload))
+            print("[*] Reception: c2-3-8 ", payload)
+            public_server_key = tuple_key(payload)
 
-            # Downloads and installs the latest firmware file 
-            # after checking res_download message c2-3-12
-            r = randam(payload)
+            #  res_download c2-3-9
+            r = randam(payload, r - 1)
             payload = make_payload(public_key, sender, 'req_metadata', 'Download', r)
+            print("[*] c2-3-9:send", payload) 
             payload = encrypt(payload, tuple(public_server_key))
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
