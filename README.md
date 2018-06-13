@@ -3,12 +3,12 @@
 ## About this framework
 - blockchain.py   
    blocchain node.   
-- nomal_req_node.py
-   In nomal node, client to request.
-- nomal_res_node.py
-   In nomal node, server to response.
-- valid_node.py
-   In valid node, server to response.
+- nomal_req_node.py   
+   In nomal node, client to request.   
+- nomal_res_node.py   
+   In nomal node, server to response.   
+- valid_node.py   
+   In valid node, server to response.   
 
 ## Installation
 
