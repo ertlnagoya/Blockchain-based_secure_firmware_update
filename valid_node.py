@@ -13,8 +13,6 @@ from uuid import uuid4
 import hashlib
 from fractions import gcd
 
-# debug
-import random
 
 HOST = "0.0.0.0"
 NOMAL_PORT = 33844
@@ -22,8 +20,9 @@ VALID_PORT = 33845
 
 
 VER = "1"
+# TODO make file hash
 HASH = "f52d885484f1215ea500a805a86ff443"
-METADATA = "metadata"
+METADATA = "file_name+file_hash+len+valid_node_URL"
 
 # Generate a globally unique address for this
 sender = str(uuid4()).replace('-', '')
@@ -205,6 +204,9 @@ while True:
 
             # Downloads and installs the latest firmware file 
             # after checking res_download message c2-1-13 & c2-3-11
+            
+            # TODO peer list makine
+
             r = randam(payload, r - 1)
             payload = make_payload(public_key, sender, 'validnode',HASH, r)
             payload = encrypt(payload, tuple(public_client_key))

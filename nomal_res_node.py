@@ -13,8 +13,6 @@ from uuid import uuid4
 import hashlib
 from fractions import gcd
 
-# debug
-import random
 
 HOST = "0.0.0.0"
 NOMAL_PORT = 33844
@@ -26,7 +24,9 @@ URL = 'git@github.com:ertlnagoya/Update_Test.git'
 DIRECTORY = 'repo'
 
 VER = "1"
+# TODO make file hash
 HASH = "f52d885484f1215ea500a805a86ff443"
+METADATA = "file_name+file_hash+len+valid_node_URL"
 
 # Generate a globally unique address for this
 sender = str(uuid4()).replace('-', '')
@@ -67,7 +67,7 @@ def new_transaction(address):
     data_nt = {
         "sender": sender,
         "recipient": "someone-other-address",
-        "ver": random.randrange(10),
+        "ver": VER,
         "url": URL
     }
     headers_nt = {

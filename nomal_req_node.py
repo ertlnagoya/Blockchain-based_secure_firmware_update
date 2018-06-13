@@ -10,8 +10,11 @@ from uuid import uuid4
 from fractions import gcd
 import random
 
+
 VER = "0"
+# TODO make file hash
 HASH = "f52d885484f1215ea500a805a86ff443"
+METADATA = "file_name+file_hash+len+valid_node_URL"
 
 # Generate a globally unique address for this
 sender = str(uuid4()).replace('-', '')
