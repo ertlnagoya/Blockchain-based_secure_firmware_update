@@ -1,7 +1,14 @@
 # Secure Update framework Using block chain technology for IoT devices 
 
-[![Build Status](https://travis-ci.org/dvf/blockchain.svg?branch=master)](https://travis-ci.org/dvf/blockchain)
-
+## About this framework
+- blockchain.py   
+   blocchain node.   
+- nomal_req_node.py
+   In nomal node, client to request.
+- nomal_res_node.py
+   In nomal node, server to response.
+- valid_node.py
+   In valid node, server to response.
 
 ## Installation
 
@@ -29,30 +36,8 @@ $ pipenv install
     * `$ pipenv run python blockchain.py -p 5001`
     * `$ pipenv run python blockchain.py --port 5002`
     
-## Docker
 
-Another option for running this blockchain program is to use Docker.  Follow the instructions below to create a local Docker container:
 
-1. Clone this repository
-2. Build the docker container
-
-```
-$ docker build -t blockchain .
-```
-
-3. Run the container
-
-```
-$ docker run --rm -p 80:5000 blockchain
-```
-
-4. To add more instances, vary the public port number before the colon:
-
-```
-$ docker run --rm -p 81:5000 blockchain
-$ docker run --rm -p 82:5000 blockchain
-$ docker run --rm -p 83:5000 blockchain
-```
 ## Licence
 [MIT License](https://github.com/ertlnagoya/blockchain/blob/master/LICENSE)
 
@@ -60,7 +45,9 @@ $ docker run --rm -p 83:5000 blockchain
 * [NGR](https://github.com/KeigoNagara)    
 
 ## Reference
+https://link.springer.com/article/10.1007/s11227-016-1870-0
 https://github.com/dvf/blockchain
+
 
 ## Contributing
 
