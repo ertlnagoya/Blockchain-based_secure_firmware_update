@@ -5,6 +5,7 @@ from socket import *
 import os
 import git
 import json
+import sys
 import urllib.request
 import urllib.error
 import ssl
@@ -20,13 +21,19 @@ VALID_PORT = 33845
 
 NODE_ADDRESS = 'localhost'
 NODE_PORT = 5000
+
+# For git
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
 DIRECTORY = 'repo'
 
+# For test
 VER = "1"
-# TODO make file hash
 HASH = "f52d885484f1215ea500a805a86ff443"
-METADATA = "file_name+file_hash+len+valid_node_URL"
+FILE_NAME = 'Update_Test'
+METADATA = FILE_NAME + ";" +HASH + ";" +"len" + ";" + HOST 
+            # "file_name+file_hash+piece_length+valid_node_URL"
+DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
+
 
 # Generate a globally unique address for this
 sender = str(uuid4()).replace('-', '')
@@ -65,10 +72,12 @@ def recv_until(c, delim="\n"):
 def new_transaction(address):
     address_nt = 'https://' + address + '/transactions/new'
     data_nt = {
+        "counter": 1,
+        # "merkle tree": ,
         "sender": sender,
         "recipient": "someone-other-address",
-        "ver": VER,
-        "url": URL
+        # "digital signature": ,
+        "verifier": HASH
     }
     headers_nt = {
         'Content-Type': 'application/json',
@@ -240,16 +249,28 @@ def randam_ini(payload):
 
 def make_payload(public_key, sender, NODE, INFO, r):
     payload = (str(public_key) + '-' + sender + '-' + NODE + 
-                '-' + VER + '-' + str(r))
+                '-' + INFO + '-' + str(r))
     return payload
 
 
 # For HTTPS conection
-#sslctx = ssl.create_default_context()
-#sslctx.load_cert_chain('cert.crt', 'server_secret.key')
+sslctx = ssl.create_default_context()
+sslctx.load_cert_chain('cert.crt', 'server_secret.key')
 
 
 while True:
+    if len(sys.argv) == 2:
+        NOMAL_PORT = argv[1]
+        print("[*] Port: ", NOMAL_PORT)
+    else:
+        print("[*] Default port:", NOMAL_PORT)
+        # sys.exit()
+
+    if os.path.isdir("./repo"):
+        print("[*] already exist.")
+    else:
+        print("[*] make repo")
+        git_clone()
     data = []
     key = []
     public_client_key = ''
@@ -368,6 +389,8 @@ while True:
             payload = soc.recv(1024)
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
+
+            git_pull()
            
             print("[*] Reception: c2-1-14", payload)
 

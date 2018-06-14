@@ -5,6 +5,7 @@ from socket import *
 import os
 import git
 import json
+import sys
 import urllib.request
 import urllib.error
 import ssl
@@ -18,11 +19,15 @@ HOST = "0.0.0.0"
 NOMAL_PORT = 33844
 VALID_PORT = 33845
 
-
+# For test
 VER = "1"
-# TODO make file hash
 HASH = "f52d885484f1215ea500a805a86ff443"
-METADATA = "file_name+file_hash+len+valid_node_URL"
+URL = 'git@github.com:ertlnagoya/Update_Test.git'
+FILE_NAME = 'Update_Test'
+METADATA = FILE_NAME + ";" +HASH + ";" +"len" + ";" + HOST 
+            # "file_name+file_hash+piece_length+valid_node_URL"
+DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
+
 
 # Generate a globally unique address for this
 sender = str(uuid4()).replace('-', '')
@@ -119,7 +124,7 @@ def randam_ini(payload):
 
 def make_payload(public_key, sender, NODE, INFO, r):
     payload = (str(public_key) + '-' + sender + '-' + NODE + '-' 
-                + VER + '-' + str(r))
+                + INFO + '-' + str(r))
     return payload
 
 # For HTTPS conection
@@ -132,6 +137,13 @@ while True:
     key = []
     public_client_key = ''
     
+    if len(sys.argv) == 2:
+        VALID_PORT = argv[1]
+        print("[*] Port: ", VALID_PORT)
+    else:
+        print("[*] Default port:", VALID_PORT)
+        # sys.exit()
+
     # RSA
     public_key, private_key = generate_keys(101, 3259)
     print("public_key:", public_key)
@@ -205,7 +217,7 @@ while True:
             # Downloads and installs the latest firmware file 
             # after checking res_download message c2-1-13 & c2-3-11
             
-            # TODO peer list makine
+            # TODO peer list making
 
             r = randam(payload, r - 1)
             payload = make_payload(public_key, sender, 'validnode',HASH, r)

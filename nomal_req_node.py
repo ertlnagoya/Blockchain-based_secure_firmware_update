@@ -3,6 +3,7 @@
 
 import sys
 import os
+import git
 from sys import argv
 from socket import *
 import socket as Socket
@@ -10,17 +11,41 @@ from uuid import uuid4
 from fractions import gcd
 import random
 
+HOST = "0.0.0.0"
+NOMAL_PORT = 33844
+VALID_PORT = 33845
 
-VER = "0"
-# TODO make file hash
+
+# For git 
+URL = 'git@github.com:ertlnagoya/Update_Test.git'
+DIRECTORY = 'repo'
+
+# For test
+VER = "1"
 HASH = "f52d885484f1215ea500a805a86ff443"
-METADATA = "file_name+file_hash+len+valid_node_URL"
+FILE_NAME = 'Update_Test'
+METADATA = FILE_NAME + ";" +HASH + ";" +"len" + ";" + HOST 
+            # "file_name+file_hash+piece_length+valid_node_URL"
+DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
+
 
 # Generate a globally unique address for this
 sender = str(uuid4()).replace('-', '')
 
-NOMAL_PORT = 33844
-VALID_PORT = 33845
+
+def git_clone():
+    _repo_path = os.path.join('./', DIRECTORY)
+    # clone from remote
+    git_repo = git.Repo.clone_from(
+        URL, _repo_path, branch='master')
+
+
+def git_pull():
+    repo = git.Repo(DIRECTORY)
+    o = repo.remotes.origin
+    o.pull()
+    print(o)
+
 
 def recv_until(c, delim="\n"):
     res = c.recv(1024)
@@ -98,7 +123,7 @@ def randam(payload, r_before):
 
 def make_payload(public_key, sender, NODE, INFO, r):
     payload = (str(public_key) + '-' + sender + '-' + NODE + 
-                '-' + VER + '-' + str(r))
+                '-' + INFO + '-' + str(r))
     return payload
 
 
@@ -136,7 +161,7 @@ def client(HOST, public_key, private_key):
         print("[*] Server is valid node")
         if int(VER) == comp:
             # req_verification c1-1-5
-            print("req=res!")
+            print("[*] Version check: req = res!")
             payload = make_payload(public_key, sender, "nomalnode", HASH, r)
             payload = encrypt(payload, tuple(public_server_key))
             # print(payload)
@@ -156,10 +181,11 @@ def client(HOST, public_key, private_key):
                 print("[*] SAME!!")
             else:
                 print("[*] Download start!")
-                #  TODO
+                git_pull()
+                
         else:
             print("[*] It is not latest! Download start!")
-            #  TODO
+            
             # req_download c1-2-5
             r = randam(payload, r)
             payload = make_payload(public_key, sender, "nomalnode", 'Download', r)
@@ -176,11 +202,13 @@ def client(HOST, public_key, private_key):
             data = payload.split("-")
             soc.close()
 
+            git_pull()
+
 
     if str(data[2]) == "nomalnode":
         print("[*] Server is nomal node")
         if int(VER) == comp:
-            print("Version check: req = res!")
+            print("[*] Version check: req = res!")
             # c2-2-4
             payload = make_payload(public_key, sender, "nomalnode", HASH, r)
             print("[*] c2-2-4:send", payload)  
@@ -198,10 +226,10 @@ def client(HOST, public_key, private_key):
                 print("[*] SAME!!")
             else:
                 print("[*] Download start!")
-                #  TODO
+                git_pull()
 
         if int(VER) < comp:
-            print("Version check: req < res!")
+            print("[*] Version check: req < res!")
             # req_metadata c2-3-5
             soc.close()
             soc = socket(AF_INET)
@@ -229,15 +257,18 @@ def client(HOST, public_key, private_key):
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
 
+            git_pull()
+
         if int(VER) > comp:
-            print("Version check: req > res!")
+            print("[*] Version check: req > res!")
             # notice_download c2-1-5
             payload = make_payload(public_key, sender, 'omalnode', 'notice', r)
             print("[*] c2-1-5:send", payload)
             payload = encrypt(payload, tuple(public_server_key))
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
-
+            
+    soc.close()
     print("[*] Finish!!")
 
 if __name__ == '__main__':
@@ -248,11 +279,16 @@ if __name__ == '__main__':
         print("Error: ")
         sys.exit()
 
+    if os.path.isdir("./repo"):
+        print("[*] already exist.")
+    else:
+        print("[*] make repo")
+        git_clone()
+
+
     # RSA: generate
     public_key, private_key = generate_keys(107, 3259)
     print(public_key)
     print(private_key)
 
     client(HOST, public_key, private_key)
-
-

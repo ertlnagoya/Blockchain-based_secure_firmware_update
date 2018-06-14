@@ -124,7 +124,7 @@ class Blockchain:
         self.chain.append(block)
         return block
 
-    def new_transaction(self, sender, recipient, ver, url):
+    def new_transaction(self, counter, sender, recipient, verifier):
         """
         Creates a new transaction to go into the next mined Block
 
@@ -135,10 +135,12 @@ class Blockchain:
         :return: The index of the Block that will hold this transaction
         """
         self.current_transactions.append({
-            'sender': sender,
-            'recipient': recipient,
-            'ver': ver,
-            'url': url,
+            "counter": 1,
+            # "merkle tree": ,
+            "sender": sender,
+            "recipient": "someone-other-address",
+            # "digital signature": ,
+            "verifier": "HASH"
         })
 
         return self.last_block['index'] + 1
@@ -219,10 +221,12 @@ def mine():
     # We must receive a reward for finding the proof.
     # The sender is "0" to signify that this node has mined a new coin.
     blockchain.new_transaction(
-        sender="0",
-        recipient=node_identifier,
-        ver=0,
-        url="initial"
+        counter = 1,
+        # "merkle tree": ,
+        sender = "0",
+        recipient = node_identifier,
+        # "digital signature": ,
+        verifier = "HASH"
     )
 
     # Forge the new Block by adding it to the chain
