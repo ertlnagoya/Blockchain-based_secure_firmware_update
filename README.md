@@ -11,7 +11,12 @@
    In valid node, server to response.   
 
 ## Usage
-TODO
+Run those program
+```
+$ python valid_node.py   
+$ python nomal_res_node.py   
+$ python nomal_req_node.py [IP address](ex 0.0.0.0)   
+```
 
 ## Installation for blockchain function
 
