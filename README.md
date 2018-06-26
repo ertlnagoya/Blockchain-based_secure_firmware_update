@@ -1,4 +1,4 @@
-# Secure Update framework Using block chain technology for IoT devices 
+# Secure Update framework Using blockchain for IoT devices 
 
 ## About this framework
 - blockchain.py   
@@ -10,7 +10,10 @@
 - valid_node.py   
    In valid node, server to response.   
 
-## Installation
+## Usage
+TODO
+
+## Installation for blockchain function
 
 1. Make sure [Python 3.6+](https://www.python.org/downloads/) is installed. 
 2. Install [pipenv](https://github.com/kennethreitz/pipenv). 
