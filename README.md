@@ -1,4 +1,4 @@
-# Secure Update framework Using block chain technology for IoT devices 
+# Secure Update framework Using blockchain for IoT devices 
 
 ## About this framework
 - blockchain.py   
@@ -10,7 +10,15 @@
 - valid_node.py   
    In valid node, server to response.   
 
-## Installation
+## Usage
+Run those program
+```
+$ python valid_node.py   
+$ python nomal_res_node.py   
+$ python nomal_req_node.py [IP address](ex 0.0.0.0)   
+```
+
+## Installation for blockchain function
 
 1. Make sure [Python 3.6+](https://www.python.org/downloads/) is installed. 
 2. Install [pipenv](https://github.com/kennethreitz/pipenv). 
