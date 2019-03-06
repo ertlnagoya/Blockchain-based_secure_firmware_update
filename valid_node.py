@@ -2,16 +2,10 @@
 # coding:utf-8
 
 from socket import *
-import os
-import git
-import json
 import sys
 import urllib.request
-import urllib.error
 import ssl
-import requests
 from uuid import uuid4
-import hashlib
 from fractions import gcd
 
 
@@ -24,8 +18,8 @@ VER = "1"
 HASH = "f52d885484f1215ea500a805a86ff443"
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
 FILE_NAME = 'Update_Test'
-METADATA = FILE_NAME + ";" +HASH + ";" +"len" + ";" + HOST 
-            # "file_name+file_hash+piece_length+valid_node_URL"
+METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
+# "file_name+file_hash+piece_length+valid_node_URL"
 DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
 
 
@@ -50,37 +44,37 @@ def recv_until(c, delim="\n"):
 
 
 def lcm(p, q):
-  return (p * q) // gcd(p, q)
+    return (p * q) // gcd(p, q)
 
 
 def generate_keys(p, q):
-  N = p * q
-  L = lcm(p - 1, q - 1)
-  for i in range(2, L):
-    if gcd(i, L) == 1:
-      E = i
-      break
-  for i in range(2, L):
-    if (E * i) % L == 1:
-      D = i
-      break
-  return (E, N), (D, N)
+    N = p * q
+    L = lcm(p - 1, q - 1)
+    for i in range(2, L):
+        if gcd(i, L) == 1:
+            E = i
+            break
+    for i in range(2, L):
+        if (E * i) % L == 1:
+            D = i
+            break
+    return (E, N), (D, N)
 
 
 def encrypt(plain_text, public_key):
-  E, N = public_key
-  plain_integers = [ord(char) for char in plain_text]
-  encrypted_integers = [i ** E % N for i in plain_integers]
-  encrypted_text = ''.join(chr(i) for i in encrypted_integers)
-  return encrypted_text
+    E, N = public_key
+    plain_integers = [ord(char) for char in plain_text]
+    encrypted_integers = [i ** E % N for i in plain_integers]
+    encrypted_text = ''.join(chr(i) for i in encrypted_integers)
+    return encrypted_text
 
 
 def decrypt(encrypted_text, private_key):
-  D, N = private_key
-  encrypted_integers = [ord(char) for char in encrypted_text]
-  decrypted_intergers = [i ** D % N for i in encrypted_integers]
-  decrypted_text = ''.join(chr(i) for i in decrypted_intergers)
-  return decrypted_text
+    D, N = private_key
+    encrypted_integers = [ord(char) for char in encrypted_text]
+    decrypted_intergers = [i ** D % N for i in encrypted_integers]
+    decrypted_text = ''.join(chr(i) for i in decrypted_intergers)
+    return decrypted_text
 
 
 def tuple_key(payload):
@@ -95,7 +89,7 @@ def tuple_key(payload):
     data[0] = data[0].replace(')', '')
     key = data[0].split(",")
     key[0] = int(key[0])
-    key[1] = int(key[1]) 
+    key[1] = int(key[1])
     return tuple(key)
 
 
@@ -107,7 +101,7 @@ def randam(payload, r_before):
     data = payload.split("-")
     r = int(data[4])
     if (r_before + 2 - r) != 0:
-        print("Error: Rundam nuber. It may be Reply Attack!!", r , r_before)
+        print("Error: Rundam nuber. It may be Reply Attack!!", r, r_before)
     # print(r)
     return r + 1
 
@@ -123,20 +117,20 @@ def randam_ini(payload):
 
 
 def make_payload(public_key, sender, NODE, INFO, r):
-    payload = (str(public_key) + '-' + sender + '-' + NODE + '-' 
+    payload = (str(public_key) + '-' + sender + '-' + NODE + '-'
                 + INFO + '-' + str(r))
     return payload
 
 # For HTTPS conection
-#sslctx = ssl.create_default_context()
-#sslctx.load_cert_chain('cert.crt', 'server_secret.key')
+# sslctx = ssl.create_default_context()
+# sslctx.load_cert_chain('cert.crt', 'server_secret.key')
 
 
 while True:
     data = []
     key = []
     public_client_key = ''
-    
+
     if len(sys.argv) == 2:
         VALID_PORT = argv[1]
         print("[*] Port: ", VALID_PORT)
@@ -180,7 +174,7 @@ while True:
             payload = make_payload(public_key, sender, 'validnode', VER, r)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
-            conn.sendall(payload)  
+            conn.sendall(payload)
 
             # Verifies and decrypts req_download message, and checks H(fvnew) c1-1-6
             payload = conn.recv(1024)
@@ -202,25 +196,25 @@ while True:
 
             #  res_metadata c2-1-9 & c2-3-7
             payload = make_payload(public_key, sender, 'validnode', METADATA, r)
-            print("[*] c2-1-9 & c2-3-7:send", payload) 
+            print("[*] c2-1-9 & c2-3-7:send", payload)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
-            conn.sendall(payload) 
+            conn.sendall(payload)
 
-            # Verifies and decrypts req_download message, and checks H(fvnew) 
+            # Verifies and decrypts req_download message, and checks H(fvnew)
             # c2-1-12 & c2-3-10
             payload = conn.recv(1024)
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
             print("[*] Reception: c2-1-12 or c2-3-10", payload)
 
-            # Downloads and installs the latest firmware file 
+            # Downloads and installs the latest firmware file
             # after checking res_download message c2-1-13 & c2-3-11
-            
+
             # TODO peer list making
 
             r = randam(payload, r - 1)
-            payload = make_payload(public_key, sender, 'validnode',HASH, r)
+            payload = make_payload(public_key, sender, 'validnode', HASH, r)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
             conn.sendall(payload)

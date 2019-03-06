@@ -6,12 +6,11 @@ import os
 import git
 import json
 import sys
+from sys import argv
 import urllib.request
 import urllib.error
 import ssl
-import requests
 from uuid import uuid4
-import hashlib
 from fractions import gcd
 
 
@@ -30,8 +29,8 @@ DIRECTORY = 'repo'
 VER = "1"
 HASH = "f52d885484f1215ea500a805a86ff443"
 FILE_NAME = 'Update_Test'
-METADATA = FILE_NAME + ";" +HASH + ";" +"len" + ";" + HOST 
-            # "file_name+file_hash+piece_length+valid_node_URL"
+METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
+# "file_name+file_hash+piece_length+valid_node_URL"
 DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
 
 
@@ -123,6 +122,7 @@ def chain(address):
         print(err.reason)
         return -1
 
+
 def resolve(address):
     address_r = 'https://' + address + '/nodes/resolve'
     req = urllib.request.Request(address_r)
@@ -134,6 +134,7 @@ def resolve(address):
         print(err.code)
     except urllib.error.URLError as err:
         print(err.reason)
+
 
 def transaction(address):
     print("Transaction start.")
@@ -147,7 +148,7 @@ def search_version(address):
     ver = 0
     print("[*] Search start.")
     data = json.loads(chain(address))
-    print(json.dumps(data, sort_keys = True, indent = 4))
+    print(json.dumps(data, sort_keys=True, indent=4))
     keylist = data.keys()
     # print()
     print(keylist)
@@ -158,7 +159,7 @@ def search_version(address):
                 if key_next['sender'] == sender:
                     # print(key_next)
                     # print(key_next['url'])
-                    index = count
+                    # index = count
                     # print(index)
                     ver = key_next['ver']
                     # print(key_next['ver'])
@@ -167,6 +168,7 @@ def search_version(address):
 
     print("[*] Search finish.")
 
+
 def verify(address):
     # search
     ver = search_version(address)
@@ -174,38 +176,37 @@ def verify(address):
 
 
 def lcm(p, q):
-  return (p * q) // gcd(p, q)
+    return (p * q) // gcd(p, q)
 
 
 def generate_keys(p, q):
-  N = p * q
-  L = lcm(p - 1, q - 1)
-  for i in range(2, L):
-    if gcd(i, L) == 1:
-      E = i
-      break
-  for i in range(2, L):
-    if (E * i) % L == 1:
-      D = i
-      break
-  return (E, N), (D, N)
+    N = p * q
+    L = lcm(p - 1, q - 1)
+    for i in range(2, L):
+        if gcd(i, L) == 1:
+            E = i
+            break
+    for i in range(2, L):
+        if (E * i) % L == 1:
+            D = i
+            break
+    return (E, N), (D, N)
 
 
 def encrypt(plain_text, public_key):
-  E, N = public_key
-  plain_integers = [ord(char) for char in plain_text]
-  encrypted_integers = [i ** E % N for i in plain_integers]
-  encrypted_text = ''.join(chr(i) for i in encrypted_integers)
-  return encrypted_text
+    E, N = public_key
+    plain_integers = [ord(char) for char in plain_text]
+    encrypted_integers = [i ** E % N for i in plain_integers]
+    encrypted_text = ''.join(chr(i) for i in encrypted_integers)
+    return encrypted_text
 
 
 def decrypt(encrypted_text, private_key):
-  D, N = private_key
-  encrypted_integers = [ord(char) for char in encrypted_text]
-  decrypted_intergers = [i ** D % N for i in encrypted_integers]
-  decrypted_text = ''.join(chr(i) for i in decrypted_intergers)
-  return decrypted_text
-
+    D, N = private_key
+    encrypted_integers = [ord(char) for char in encrypted_text]
+    decrypted_intergers = [i ** D % N for i in encrypted_integers]
+    decrypted_text = ''.join(chr(i) for i in decrypted_intergers)
+    return decrypted_text
 
 
 def tuple_key(payload):
@@ -214,13 +215,12 @@ def tuple_key(payload):
     '''
     data = []
     key = []
-    public_client_key = ''
     data = payload.split("-")
     data[0] = data[0].replace('(', '')
     data[0] = data[0].replace(')', '')
     key = data[0].split(",")
     key[0] = int(key[0])
-    key[1] = int(key[1]) 
+    key[1] = int(key[1])
     return tuple(key)
 
 
@@ -232,7 +232,7 @@ def randam(payload, r_before):
     data = payload.split("-")
     r = int(data[4])
     if (r_before + 2 - r) != 0:
-        print("Error: Rundam nuber. It may be Reply Attack!!", r , r_before)
+        print("Error: Rundam nuber. It may be Reply Attack!!", r, r_before)
     # print(r)
     return r + 1
 
@@ -248,7 +248,7 @@ def randam_ini(payload):
 
 
 def make_payload(public_key, sender, NODE, INFO, r):
-    payload = (str(public_key) + '-' + sender + '-' + NODE + 
+    payload = (str(public_key) + '-' + sender + '-' + NODE +
                 '-' + INFO + '-' + str(r))
     return payload
 
@@ -260,7 +260,7 @@ sslctx.load_cert_chain('cert.crt', 'server_secret.key')
 
 while True:
     if len(sys.argv) == 2:
-        NOMAL_PORT = argv[1]
+        NOMAL_PORT = int(argv[1])
         print("[*] Port: ", NOMAL_PORT)
     else:
         print("[*] Default port:", NOMAL_PORT)
@@ -275,7 +275,7 @@ while True:
     key = []
     public_client_key = ''
     public_server_key = ''
-    
+
     # RSA
     public_key, private_key = generate_keys(107, 3259)
     print("public_key:", public_key)
@@ -309,21 +309,21 @@ while True:
             print("Version check: req = res!")
             # join_verification c2-2-3
             payload = make_payload(public_key, sender, 'nomalnode', VER, r)
-            print("[*] c2-2-3:send", payload) 
+            print("[*] c2-2-3:send", payload)
             payload = encrypt(payload, tuple(public_client_key))
             # print(payload)
             payload = payload.encode("UTF-8")
             conn.sendall(payload)
-             
+
             # git_pull()
             address = NODE_ADDRESS + ':' + str(NODE_PORT)
             # verify(address)
             # mine(address)
-            transaction(address) 
+            transaction(address)
             print("waiting...")
             # resolve(address)
 
-            # Verifies and decrypts req_verification message 
+            # Verifies and decrypts req_verification message
             # and prepares to send H(fv') c2-2-7
             payload = conn.recv(1024)
             # print("[*] Reception: " + str(payload))
@@ -334,7 +334,7 @@ while True:
             # c2-2-8
             r = randam(payload, r - 1)
             payload = make_payload(public_key, sender, 'nomalnode', HASH, r)
-            print("[*] c2-2-8:send", payload) 
+            print("[*] c2-2-8:send", payload)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
             conn.sendall(payload)
@@ -343,7 +343,7 @@ while True:
             #  Verifies notice_download message c2-1-3
             print("Version check: req > res!")
             payload = make_payload(public_key, sender, 'nomalnode', VER, r)
-            print("[*] c2-1-3:send", payload) 
+            print("[*] c2-1-3:send", payload)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
             conn.sendall(payload)
@@ -362,11 +362,11 @@ while True:
             soc.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
             soc.connect((HOST, VALID_PORT))
             print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
-            
+
             r = randam(payload, r)
             payload = make_payload(public_key, sender, 'req_metadata', VER, r)
             soc.sendall(payload.encode("UTF-8"))
-            print("[*] c2-1-7:send", payload)  
+            print("[*] c2-1-7:send", payload)
 
             # Decrypts res_metadata message and obtains H(fvnew) from Mvnew c2-1-10
             payload = soc.recv(1024)
@@ -383,15 +383,15 @@ while True:
             # print(payload)
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
-            
-            # Downloads and installs the latest firmware file 
+
+            # Downloads and installs the latest firmware file
             # after checking res_download message c2-1-14
             payload = soc.recv(1024)
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
 
             git_pull()
-           
+
             print("[*] Reception: c2-1-14", payload)
 
             soc.close()
@@ -402,7 +402,7 @@ while True:
             payload = make_payload(public_key, sender, 'nomalnode', VER, r)
             payload = encrypt(payload, tuple(public_client_key))
             payload = payload.encode("UTF-8")
-            conn.sendall(payload)  
+            conn.sendall(payload)
 
         print("[*] Finish!!")
 

@@ -16,16 +16,16 @@ NOMAL_PORT = 33844
 VALID_PORT = 33845
 
 
-# For git 
+# For git
 URL = 'git@github.com:ertlnagoya/Update_Test.git'
 DIRECTORY = 'repo'
 
 # For test
-VER = "1"
+VER = "2"
 HASH = "f52d885484f1215ea500a805a86ff443"
 FILE_NAME = 'Update_Test'
-METADATA = FILE_NAME + ";" +HASH + ";" +"len" + ";" + HOST 
-            # "file_name+file_hash+piece_length+valid_node_URL"
+METADATA = FILE_NAME + ";" + HASH + ";" + "len" + ";" + HOST
+# "file_name+file_hash+piece_length+valid_node_URL"
 DOWNLOAD = URL + ";" + HASH  # "file_URL+file_hash+len"
 
 
@@ -58,38 +58,39 @@ def recv_until(c, delim="\n"):
         res += data
     return res
 
+
 def lcm(p, q):
-  return (p * q) // gcd(p, q)
+    return (p * q) // gcd(p, q)
 
 
 def generate_keys(p, q):
-  N = p * q
-  L = lcm(p - 1, q - 1)
-  for i in range(2, L):
-    if gcd(i, L) == 1:
-      E = i
-      break
-  for i in range(2, L):
-    if (E * i) % L == 1:
-      D = i
-      break
-  return (E, N), (D, N)
+    N = p * q
+    L = lcm(p - 1, q - 1)
+    for i in range(2, L):
+        if gcd(i, L) == 1:
+            E = i
+            break
+    for i in range(2, L):
+        if (E * i) % L == 1:
+            D = i
+            break
+    return (E, N), (D, N)
 
 
 def encrypt(plain_text, public_key):
-  E, N = public_key
-  plain_integers = [ord(char) for char in plain_text]
-  encrypted_integers = [i ** E % N for i in plain_integers]
-  encrypted_text = ''.join(chr(i) for i in encrypted_integers)
-  return encrypted_text
+    E, N = public_key
+    plain_integers = [ord(char) for char in plain_text]
+    encrypted_integers = [i ** E % N for i in plain_integers]
+    encrypted_text = ''.join(chr(i) for i in encrypted_integers)
+    return encrypted_text
 
 
 def decrypt(encrypted_text, private_key):
-  D, N = private_key
-  encrypted_integers = [ord(char) for char in encrypted_text]
-  decrypted_intergers = [i ** D % N for i in encrypted_integers]
-  decrypted_text = ''.join(chr(i) for i in decrypted_intergers)
-  return decrypted_text
+    D, N = private_key
+    encrypted_integers = [ord(char) for char in encrypted_text]
+    decrypted_intergers = [i ** D % N for i in encrypted_integers]
+    decrypted_text = ''.join(chr(i) for i in decrypted_intergers)
+    return decrypted_text
 
 
 def tuple_key(payload):
@@ -98,13 +99,12 @@ def tuple_key(payload):
     '''
     data = []
     key = []
-    public_client_key = ''
     data = payload.split("-")
     data[0] = data[0].replace('(', '')
     data[0] = data[0].replace(')', '')
     key = data[0].split(",")
     key[0] = int(key[0])
-    key[1] = int(key[1]) 
+    key[1] = int(key[1])
     return tuple(key)
 
 
@@ -116,13 +116,13 @@ def randam(payload, r_before):
     data = payload.split("-")
     r = int(data[4])
     if (r_before + 2 - r) != 0:
-        print("Error: Rundam nuber. It may be Reply Attack!!", r , r_before)
+        print("Error: Rundam nuber. It may be Reply Attack!!", r, r_before)
     # print(r)
     return r + 1
 
 
 def make_payload(public_key, sender, NODE, INFO, r):
-    payload = (str(public_key) + '-' + sender + '-' + NODE + 
+    payload = (str(public_key) + '-' + sender + '-' + NODE +
                 '-' + INFO + '-' + str(r))
     return payload
 
@@ -136,8 +136,8 @@ def client(HOST, public_key, private_key):
     soc.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     soc.connect((HOST, NOMAL_PORT))
     print("[*] connecting to %s:%s" % (HOST, NOMAL_PORT))
-    #soc.connect((HOST, VALID_PORT))
-    #print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
+    # soc.connect((HOST, VALID_PORT))
+    # print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
     # verbose_ping(sys.argv[12)
 
     # req_vercheck c1-1-1
@@ -167,9 +167,10 @@ def client(HOST, public_key, private_key):
             # print(payload)
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
-            print("[*] c1-1-5:send", data)  
+            print("[*] c1-1-5:send", data)
 
-            # Verifies and decrypts res_verification message, and compares H(fv) and H(fvnew c1-1-8
+            # Verifies and decrypts res_verification message,
+            # and compares H(fv) and H(fvnew c1-1-8
             payload = soc.recv(1024)
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
@@ -182,10 +183,10 @@ def client(HOST, public_key, private_key):
             else:
                 print("[*] Download start!")
                 git_pull()
-                
+
         else:
             print("[*] It is not latest! Download start!")
-            
+
             # req_download c1-2-5
             r = randam(payload, r)
             payload = make_payload(public_key, sender, "nomalnode", 'Download', r)
@@ -194,7 +195,8 @@ def client(HOST, public_key, private_key):
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
 
-            # Downloads and installs the latest firmware file after checking res_download message c1-2-8
+            # Downloads and installs the latest firmware file 
+            # after checking res_download message c1-2-8
             payload = soc.recv(1024)
             payload = payload.decode("UTF-8")
             payload = decrypt(payload, private_key)
@@ -204,14 +206,13 @@ def client(HOST, public_key, private_key):
 
             git_pull()
 
-
     if str(data[2]) == "nomalnode":
         print("[*] Server is nomal node")
         if int(VER) == comp:
             print("[*] Version check: req = res!")
             # c2-2-4
             payload = make_payload(public_key, sender, "nomalnode", HASH, r)
-            print("[*] c2-2-4:send", payload)  
+            print("[*] c2-2-4:send", payload)
             payload = encrypt(payload, tuple(public_server_key))
             # print(payload)
             payload = payload.encode("UTF-8")
@@ -236,11 +237,10 @@ def client(HOST, public_key, private_key):
             soc.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
             soc.connect((HOST, VALID_PORT))
             print("[*] connecting to %s:%s" % (HOST, VALID_PORT))
-            
-            payload = make_payload(public_key, sender, 'req_metadata', 'metadata', r)
-            print("[*] c2-3-5:send", payload) 
-            soc.sendall(payload.encode("UTF-8"))
 
+            payload = make_payload(public_key, sender, 'req_metadata', 'metadata', r)
+            print("[*] c2-3-5:send", payload)
+            soc.sendall(payload.encode("UTF-8"))
 
             # Decrypts res_metadata message and obtains H(fvnew) from Mvnew c2-3-8
             payload = soc.recv(1024)
@@ -252,7 +252,7 @@ def client(HOST, public_key, private_key):
             #  res_download c2-3-9
             r = randam(payload, r - 1)
             payload = make_payload(public_key, sender, 'req_metadata', 'Download', r)
-            print("[*] c2-3-9:send", payload) 
+            print("[*] c2-3-9:send", payload)
             payload = encrypt(payload, tuple(public_server_key))
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
@@ -267,24 +267,30 @@ def client(HOST, public_key, private_key):
             payload = encrypt(payload, tuple(public_server_key))
             payload = payload.encode("UTF-8")
             soc.sendall(payload)
-            
+
     soc.close()
     print("[*] Finish!!")
+
 
 if __name__ == '__main__':
     data = []
     if len(sys.argv) == 2:
         HOST = argv[1]
     else:
-        print("Error: ")
-        sys.exit()
+        if len(sys.argv) == 3:
+            NOMAL_PORT = int(argv[2])
+            print("[*] Port: ", NOMAL_PORT)
+        else:
+            print("[*] Default port:", NOMAL_PORT)
+            # sys.exit()
+            print("Error: ")
+            sys.exit()
 
     if os.path.isdir("./repo"):
         print("[*] already exist.")
     else:
         print("[*] make repo")
         git_clone()
-
 
     # RSA: generate
     public_key, private_key = generate_keys(107, 3259)
